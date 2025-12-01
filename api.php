@@ -9,10 +9,12 @@ error_reporting(E_ALL);
 // Cabecera y configuración MySQL
 // —————————————————————————————
 header('Content-Type: application/json');
-$host   = 'sql200.infinityfree.com';
-$dbname = 'if0_39064130_buscador';
-$user   = 'if0_39064130';
-$pass   = 'POQ2ODdvhG';
+
+// Configuración de Base de Datos (Variables de Entorno con fallback)
+$host   = getenv('DB_HOST') ?: 'sql200.infinityfree.com';
+$dbname = getenv('DB_NAME') ?: 'if0_39064130_buscador';
+$user   = getenv('DB_USER') ?: 'if0_39064130';
+$pass   = getenv('DB_PASS') ?: 'POQ2ODdvhG';
 
 $dsn = "mysql:host=$host;port=3306;dbname=$dbname;charset=utf8";
 try {
