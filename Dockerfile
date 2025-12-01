@@ -27,7 +27,8 @@ COPY . /var/www/html/
 RUN pip install --no-cache-dir -r /var/www/html/requirements.txt
 
 # Configurar permisos
-RUN chown -R www-data:www-data /var/www/html \
+RUN mkdir -p /var/www/html/uploads \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/uploads
 
 # Exponer puerto 80
