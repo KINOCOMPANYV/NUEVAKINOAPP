@@ -9,28 +9,29 @@ error_reporting(E_ALL);
 echo "<h1>Inicializando Base de Datos...</h1>";
 
 // 1. Obtener credenciales de variables de entorno
-$host   = getenv('DB_HOST');
-$dbname = getenv('DB_NAME');
-$user   = getenv('DB_USER');
-$pass   = getenv('DB_PASS');
+$host = getenv('DB_HOST') ?: getenv('MYSQLHOST');
+$dbname = getenv('DB_NAME') ?: getenv('MYSQL_DATABASE');
+$user = getenv('DB_USER') ?: getenv('MYSQLUSER');
+$pass = getenv('DB_PASS') ?: getenv('MYSQLPASSWORD');
+$port = getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: 3306;
 
 if (!$host) {
-    die("<p style='color:red'>Error: No se detectaron las variables de entorno (DB_HOST, etc). <br>Asegúrate de haber agregado el servicio MySQL en Railway y configurado las variables en tu proyecto.</p>");
+  die("<p style='color:red'>Error: No se detectaron las variables de entorno (DB_HOST ni MYSQLHOST). <br>Asegúrate de haber agregado el servicio MySQL en Railway.</p>");
 }
 
-echo "<p>Conectando a: $host ...</p>";
+echo "<p>Conectando a: $host:$port ...</p>";
 
 try {
-    // 2. Conectar
-    $dsn = "mysql:host=$host;port=3306;dbname=$dbname;charset=utf8";
-    $db = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
-    echo "<p style='color:green'>¡Conexión exitosa!</p>";
+  // 2. Conectar
+  $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8";
+  $db = new PDO($dsn, $user, $pass, [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+  ]);
+  echo "<p style='color:green'>¡Conexión exitosa!</p>";
 
-    // 3. SQL para crear tablas
-    $sql = "
+  // 3. SQL para crear tablas
+  $sql = "
     CREATE TABLE IF NOT EXISTS documents (
       id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
@@ -49,22 +50,22 @@ try {
     ) ENGINE=InnoDB;
     ";
 
-    // 4. Ejecutar
-    $db->exec($sql);
-    
-    echo "<h2>¡Tablas creadas correctamente! ✅</h2>";
-    echo "<p>Las tablas 'documents' y 'codes' ya existen en tu base de datos.</p>";
-    echo "<p><strong>Siguiente paso:</strong> Ya puedes usar tu aplicación. Por seguridad, te recomendamos borrar este archivo del repositorio más adelante.</p>";
-    echo "<a href='/'>Ir al Inicio</a>";
+  // 4. Ejecutar
+  $db->exec($sql);
+
+  echo "<h2>¡Tablas creadas correctamente! ✅</h2>";
+  echo "<p>Las tablas 'documents' y 'codes' ya existen en tu base de datos.</p>";
+  echo "<p><strong>Siguiente paso:</strong> Ya puedes usar tu aplicación. Por seguridad, te recomendamos borrar este archivo del repositorio más adelante.</p>";
+  echo "<a href='/'>Ir al Inicio</a>";
 
 } catch (PDOException $e) {
-    echo "<h2 style='color:red'>Error de Base de Datos</h2>";
-    echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
-    echo "<p>Verifica que:</p>";
-    echo "<ul>";
-    echo "<li>El servicio MySQL esté activo en Railway.</li>";
-    echo "<li>Las variables de entorno (DB_HOST, DB_USER, etc.) sean correctas.</li>";
-    echo "<li>No estés intentando conectar a PostgreSQL por error (este script es para MySQL).</li>";
-    echo "</ul>";
+  echo "<h2 style='color:red'>Error de Base de Datos</h2>";
+  echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
+  echo "<p>Verifica que:</p>";
+  echo "<ul>";
+  echo "<li>El servicio MySQL esté activo en Railway.</li>";
+  echo "<li>Las variables de entorno (DB_HOST, DB_USER, etc.) sean correctas.</li>";
+  echo "<li>No estés intentando conectar a PostgreSQL por error (este script es para MySQL).</li>";
+  echo "</ul>";
 }
 ?>
