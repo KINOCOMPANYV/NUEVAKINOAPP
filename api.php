@@ -55,7 +55,7 @@ switch ($action) {
   case 'upload':
     $name = $_POST['name'];
     $date = $_POST['date'];
-    $codes = array_filter(array_map('trim', preg_split('/\r?\n/', $_POST['codes'] ?? '')));
+    $codes = array_filter(array_map('trim', preg_split('/\r?\n/', $_POST['codes'] ?? '')), 'strlen');
     $file = $_FILES['file'];
     $filename = time() . '_' . basename($file['name']);
     if (!move_uploaded_file($file['tmp_name'], __DIR__ . '/uploads/' . $filename)) {
@@ -131,14 +131,14 @@ switch ($action) {
 
   // —— BÚSQUEDA INTELIGENTE VORAZ ——  
   case 'search':
-    $codes = array_filter(array_map('trim', preg_split('/\r?\n/', $_POST['codes'] ?? '')));
+    $codes = array_filter(array_map('trim', preg_split('/\r?\n/', $_POST['codes'] ?? '')), 'strlen');
     if (empty($codes)) {
       echo json_encode([]);
       exit;
     }
 
-    // Usar UPPER para insensibilidad a mayúsculas/minúsculas
-    $cond = implode(" OR ", array_fill(0, count($codes), "UPPER(c.code) = UPPER(?)"));
+    // Usar UPPER y TRIM para insensibilidad a mayúsculas/minúsculas y espacios
+    $cond = implode(" OR ", array_fill(0, count($codes), "UPPER(TRIM(c.code)) = UPPER(TRIM(?))"));
     $stmt = $db->prepare("
     SELECT d.id,d.name,d.date,d.path,c.code
     FROM documents d
@@ -235,7 +235,7 @@ switch ($action) {
     $id = (int) $_POST['id'];
     $name = $_POST['name'];
     $date = $_POST['date'];
-    $codes = array_filter(array_map('trim', preg_split('/\r?\n/', $_POST['codes'] ?? '')));
+    $codes = array_filter(array_map('trim', preg_split('/\r?\n/', $_POST['codes'] ?? '')), 'strlen');
     if (!empty($_FILES['file']['tmp_name'])) {
       $old = $db->prepare('SELECT path FROM documents WHERE id=?');
       $old->execute([$id]);
@@ -286,7 +286,7 @@ switch ($action) {
     FROM documents d
     JOIN codes c1 ON d.id = c1.document_id
     LEFT JOIN codes c2 ON d.id = c2.document_id
-    WHERE UPPER(c1.code) = UPPER(?)
+    WHERE UPPER(TRIM(c1.code)) = UPPER(TRIM(?))
     GROUP BY d.id
   ");
     $stmt->execute([$code]);
